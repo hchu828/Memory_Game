@@ -25,4 +25,6 @@ body{
   box-shadow: black 2px 3px;
   width: 20%;
   margin: 1rem; 
+  background-color: white;
+  color: white;
 }

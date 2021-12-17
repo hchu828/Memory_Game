@@ -9,6 +9,9 @@ const COLORS = [
 ];
 
 const colors = shuffle(COLORS);
+let firstCard, secondCard;
+let event1, event2;
+let numPairs = colors.length / 2;
 
 createCards(colors);
 
@@ -40,14 +43,27 @@ function shuffle(items) {
 
 function createCards(colors) {
   const gameBoard = document.getElementById("game");
+  let row1 = document.createElement("div");
+  let row2 = document.createElement("div");
+
+  row1.classList.add("row");
+  row1.setAttribute("id", "row1");
+  row2.classList.add("row");
+  row2.setAttribute("id", "row2");
+  gameBoard.appendChild(row1);
+  gameBoard.appendChild(row2);
+  
   const rows = document.getElementsByClassName("row");
   let cardCount = 0;
 
   for (let color of colors) {
     let card = document.createElement("div");
     card.classList.add("card");
-    card.style.backgroundColor = color;
-    (cardCount < colors.length / 2) ? rows[0].append(card) : rows[1].append(card);
+    card.style.color = color;
+    card.addEventListener("click", function(e){
+      setTimeout(handleCardClick(e), 1000);
+    });
+    (cardCount < colors.length / 2) ? rows[0].appendChild(card) : rows[1].appendChild(card);
     cardCount++;
   }
 }
@@ -55,17 +71,67 @@ function createCards(colors) {
 /** Flip a card face-up. */
 
 function flipCard(card) {
-  // ... you need to write this ...
+  card.target.style.backgroundColor = card.target.style.color;
 }
 
 /** Flip a card face-down. */
 
 function unFlipCard(card) {
-  // ... you need to write this ...
+  setTimeout(function (){
+    card.target.style.backgroundColor = "white";
+  }, 1000);  
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
 
-function handleCardClick(evt) {
-  // ... you need to write this ...
+function handleCardClick(e) {
+  if(firstCard === undefined) {
+    firstCard = e.target;
+    event1 = e;
+    console.log("first card: " + firstCard);
+    flipCard(e);
+  } else if(secondCard === undefined) {
+    secondCard = e.target;
+    event2 = e;
+    console.log("second card: " + secondCard);
+    flipCard(e);
+
+    setTimeout(function(){
+      if(isPair()){
+        console.log("Found pair!");
+        event1.target.removeEventListener("click", event1);
+        event2.target.removeEventListener("click", event2);
+        numPairs--;
+        if(gameOver()) displayWinner();
+      } 
+      else {
+        console.log("Not a pair!");
+        unFlipCard(event1);
+        unFlipCard(event2);
+      }
+      setTimeout(function(){
+        firstCard = undefined;
+        secondCard = undefined;
+      }, 1000);
+    }, 250);
+  }
+}
+
+/** Check if first card and second card form a pair */
+
+function isPair(){
+  return (firstCard.style.color === secondCard.style.color) && (firstCard !== secondCard);
+}
+
+/** Check if all cards have been flipped */
+
+function gameOver(){
+  return numPairs === 0;
+}
+
+/** Display winner message */
+
+function displayWinner() {
+  const message = document.getElementById("title");
+  message.innerHTML = "Congrats! You beat the game!";
 }
