@@ -10,7 +10,8 @@ const COLORS = [
 
 const colors = shuffle(COLORS);
 let firstCard, secondCard;
-let event1, event2;
+let flipped = false;
+let unlockBoard = true;
 let numPairs = colors.length / 2;
 
 createCards(colors);
@@ -60,9 +61,7 @@ function createCards(colors) {
     let card = document.createElement("div");
     card.classList.add("card");
     card.style.color = color;
-    card.addEventListener("click", function(e){
-      setTimeout(handleCardClick(e), 1000);
-    });
+    card.addEventListener("click", flipCard);
     (cardCount < colors.length / 2) ? rows[0].appendChild(card) : rows[1].appendChild(card);
     cardCount++;
   }
@@ -70,51 +69,48 @@ function createCards(colors) {
 
 /** Flip a card face-up. */
 
-function flipCard(card) {
-  card.target.style.backgroundColor = card.target.style.color;
+function flipCard() {
+  /* This line executes to ensure the previous loop has finished processing */
+  if(unlockBoard === false) return;
+
+  if(flipped === false){
+    firstCard = this;
+    firstCard.style.backgroundColor = firstCard.style.color;
+    flipped = true;
+  } 
+  else {
+    secondCard = this;
+    secondCard.style.backgroundColor = secondCard.style.color;
+    unlockBoard = false;
+
+      if(isPair()){
+        message("Found a pair!");
+        firstCard.removeEventListener("click", flipCard);
+        secondCard.removeEventListener("click", flipCard);
+        numPairs--;
+        if(gameOver()) displayWinner();
+      } else {
+        message("Not a pair...");
+        unFlipCards(firstCard, secondCard);
+      }
+      resetCurrentPair();  
+  }
 }
 
 /** Flip a card face-down. */
 
-function unFlipCard(card) {
-  setTimeout(function (){
-    card.target.style.backgroundColor = "white";
-  }, 1000);  
+function unFlipCards(firstCard, secondCard) {
+  setTimeout(function(){
+    firstCard.style.backgroundColor = "white";
+    secondCard.style.backgroundColor = "white";
+    console.log("Unflipped");
+  }, 1000);
 }
 
 /** Handle clicking on a card: this could be first-card or second-card. */
 
-function handleCardClick(e) {
-  if(firstCard === undefined) {
-    firstCard = e.target;
-    event1 = e;
-    console.log("first card: " + firstCard);
-    flipCard(e);
-  } else if(secondCard === undefined) {
-    secondCard = e.target;
-    event2 = e;
-    console.log("second card: " + secondCard);
-    flipCard(e);
+function handleCardClick() {
 
-    setTimeout(function(){
-      if(isPair()){
-        console.log("Found pair!");
-        event1.target.removeEventListener("click", event1);
-        event2.target.removeEventListener("click", event2);
-        numPairs--;
-        if(gameOver()) displayWinner();
-      } 
-      else {
-        console.log("Not a pair!");
-        unFlipCard(event1);
-        unFlipCard(event2);
-      }
-      setTimeout(function(){
-        firstCard = undefined;
-        secondCard = undefined;
-      }, 1000);
-    }, 250);
-  }
 }
 
 /** Check if first card and second card form a pair */
@@ -134,4 +130,21 @@ function gameOver(){
 function displayWinner() {
   const message = document.getElementById("title");
   message.innerHTML = "Congrats! You beat the game!";
+}
+
+function resetCurrentPair() {
+  setTimeout(function(){
+    firstCard = undefined;
+    secondCard = undefined;
+    flipped = false;
+    unlockBoard = true;
+  }, 1000);
+}
+
+function message(string) {
+  let message = document.getElementById("title");
+  message.innerHTML = string;
+  setTimeout(function() {
+    message.innerHTML = "Memory Game!";
+  }, 1000);
 }
